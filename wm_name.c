@@ -44,19 +44,19 @@ int set_screen(xconn_t *xconn)
 
 int set_wm_name(xconn_t *xconn, const char *name)
 {
-	// XXX
-	// XXX: check error
-	// XXX
-	xcb_change_property(xconn->conn,
-			    XCB_PROP_MODE_REPLACE,
-			    xconn->screen->root,
-			    XCB_ATOM_WM_NAME,
-			    XCB_ATOM_STRING,
-			    8,
-			    strlen(name),
-			    name);
+	xcb_void_cookie_t cookie;
 
-	xcb_flush(xconn->conn); 
+	cookie = xcb_change_property_checked(xconn->conn,
+					     XCB_PROP_MODE_REPLACE,
+					     xconn->screen->root,
+					     XCB_ATOM_WM_NAME,
+					     XCB_ATOM_STRING,
+					     8,
+					     strlen(name),
+					     name);
+
+	if (xcb_request_check(xconn->conn, cookie) != NULL)
+		return -1;
 
 	return 0;
 }

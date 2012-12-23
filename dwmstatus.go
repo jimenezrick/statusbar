@@ -1,11 +1,20 @@
 package main
 
+// XXX /proc/meminfo
+// XXX /proc/net/dev
+// XXX /proc/diskstats
+
 // #cgo CFLAGS: -Wall
 // #cgo LDFLAGS: -lxcb
 // #include <stdlib.h>
 // #include "wm_name.h"
 import "C"
-import "unsafe"
+
+import (
+	"unsafe"
+	"strings"
+	"time"
+)
 
 func main() {
 	xconn := C.connect_x()
@@ -18,9 +27,23 @@ func main() {
 		panic("can't find screen")
 	}
 
-	name := C.CString("ABC")
-	if C.set_wm_name(xconn, name) == -1 { // XXX: Error checking
+	show_animation(xconn, ">", 20, 25, 2)
+	set_wm_name(xconn, "")
+}
+
+func set_wm_name(xconn *C.xconn_t, name string) {
+	str := C.CString(name)
+	defer C.free(unsafe.Pointer(str));
+	if C.set_wm_name(xconn, str) == -1 {
 		panic("can't set window manager name")
 	}
-	defer C.free(unsafe.Pointer(name));
+}
+
+func show_animation(xconn *C.xconn_t, pattern string, len int, pause int, times int) {
+	for t := 0; t < times; t++ {
+		for l := len; l > 0; l-- {
+			set_wm_name(xconn, strings.Repeat(pattern, l))
+			time.Sleep(time.Duration(pause) * time.Millisecond)
+		}
+	}
 }

@@ -1,7 +1,15 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <xcb/xcb.h>
+
 #include "wm_name.h"
+
+typedef struct xconn_t {
+	xcb_connection_t *conn;
+	xcb_screen_t     *screen;
+	int               screen_num;
+} xconn_t;
 
 xconn_t *connect_x(void)
 {

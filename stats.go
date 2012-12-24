@@ -41,20 +41,27 @@ func updateStats() {
 }
 
 func formatStats(t time.Time, load float64, mem int64, io float64, up, down int64) string {
-	return fmt.Sprintf("%s [%.2fL] [%s] [%.2fIO] [%s/%s]",
-		t.Format(time.ANSIC), load, withUnits(mem), io, withUnits(up), withUnits(down))
+	return fmt.Sprintf(
+		"%s [%.2fL] [%s] [%.2fIO] [%s/%s]",
+		t.Format(time.ANSIC),
+		load,
+		withUnits(mem, 6),
+		io,
+		withUnits(up, 6),
+		withUnits(down, 6),
+	)
 }
 
-func withUnits(x int64) string {
+func withUnits(x int64, width int) string {
 	switch {
 	case x >= 1024*1024*1024:
-		return fmt.Sprintf("%.2fG", float64(x)/(1024*1024*1024))
+		return fmt.Sprintf("%*.2fG", width, float64(x)/(1024*1024*1024))
 	case x >= 1024*1024:
-		return fmt.Sprintf("%.2fM", float64(x)/(1024*1024))
+		return fmt.Sprintf("%*.2fM", width, float64(x)/(1024*1024))
 	case x >= 1024:
-		return fmt.Sprintf("%.2fK", float64(x)/1024)
+		return fmt.Sprintf("%*.2fK", width, float64(x)/1024)
 	}
-	return fmt.Sprintf("%.2f", float64(x))
+	return fmt.Sprintf("%*.2f ", width, float64(x))
 }
 
 func loadAvg() float64 {

@@ -29,8 +29,8 @@ func extractCol(s string, n int) string {
 	return fields[n - 1]
 }
 
-func extractIntCol(s string, n int) int {
-	i, err := strconv.Atoi(extractCol(s, n))
+func extractIntCol(s string, n int) int64 {
+	i, err := strconv.ParseInt(extractCol(s, n), 10, 64)
 	if err != nil {
 		panic(err)
 	}

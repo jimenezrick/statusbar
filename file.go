@@ -3,6 +3,7 @@ package main
 import (
 	"strings"
 	"io/ioutil"
+	"strconv"
 )
 
 func readFile(name string) string {
@@ -20,10 +21,18 @@ func extractLine(s, substr string) string {
 			return l
 		}
 	}
-	panic("line not found")
+	panic("line with substring " + substr + " not found")
 }
 
 func extractColumn(s string, n int) string {
 	fields := strings.Fields(s)
 	return fields[n - 1]
+}
+
+func extractIntColumn(s string, n int) int {
+	i, err := strconv.Atoi(extractColumn(s, n))
+	if err != nil {
+		panic(err)
+	}
+	return i
 }

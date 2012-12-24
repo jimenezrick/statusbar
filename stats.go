@@ -7,7 +7,7 @@ import (
 
 func updateStats() {
 	for {
-		s := formatStats(time.Now(), 0.025, 2.5*1024, 0.2, 20, 300000000) // XXX
+		s := formatStats(time.Now(), 0.025, usedMem(), 0.2, 20, 300000000) // XXX
 		select {
 		case statsUpdates <- s:
 		default:
@@ -32,4 +32,11 @@ func addUnits(x int) string {
 		return fmt.Sprintf("%.2fK", float32(x)/1024)
 	}
 	return fmt.Sprintf("%.2f", float32(x))
+}
+
+func usedMem() int {
+	file := readFile("/proc/meminfo")
+	memTotal := extractIntColumn(extractLine(file, "MemTotal"), 2)
+	memFree := extractIntColumn(extractLine(file, "MemFree"), 2)
+	return (memTotal - memFree) * 1024
 }

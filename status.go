@@ -25,7 +25,7 @@ func updater() {
 		panic("can't find screen")
 	}
 
-	show_animation(xconn, ">", 20, 25, 2)
+	warn(xconn, ">", 20, 25, 2)
 	for {
 		s := <-statsUpdates
 		set_wm_name(xconn, s)
@@ -40,7 +40,7 @@ func set_wm_name(xconn *C.xconn_t, name string) {
 	}
 }
 
-func show_animation(xconn *C.xconn_t, pattern string, len int, pause int, times int) {
+func warn(xconn *C.xconn_t, pattern string, len int, pause int, times int) {
 	for t := 0; t < times; t++ {
 		for l := len; l > 0; l-- {
 			set_wm_name(xconn, strings.Repeat(pattern, l))

@@ -12,22 +12,22 @@ const (
 	pause = time.Second
 )
 
-type netStats struct {
-	lastTx, lastRcv int64
-	lastTime time.Time
+type prevStats struct {
+	v []int64
+	t time.Time
 }
 
-var nStats netStats
+var prevNetStats prevStats
 
 func init() {
-	tx, rcv := txRcvNet()
-	nStats = netStats{tx, rcv, time.Now()}
+	snd, rcv := netSndRcv()
+	prevNetStats = prevStats{[]int64{snd, rcv}, time.Now()}
 }
 
 func updateStats() {
 	for {
 		io := 0.0 // XXX
-		up, down := upDownNet()
+		up, down := netRate()
 		stats := formatStats(time.Now(), loadAvg(), usedMem(), io, up, down)
 
 		select {
@@ -61,7 +61,7 @@ func withUnits(x int64, width int) string {
 	case x >= 1024:
 		return fmt.Sprintf("%*.2fK", width, float64(x)/1024)
 	}
-	return fmt.Sprintf("%*.2f ", width, float64(x))
+	return fmt.Sprintf("%*.2fB", width, float64(x))
 }
 
 func loadAvg() float64 {
@@ -76,18 +76,45 @@ func usedMem() int64 {
 	return (memTotal - memFree) * 1024
 }
 
-func txRcvNet() (int64, int64) {
+
+
+
+
+
+
+
+
+
+
+
+
+// io....
+// ioRate
+
+
+
+
+
+
+
+
+
+
+
+
+
+func netSndRcv() (int64, int64) {
 	file := readFile("/proc/net/dev")
-	tx := extractIntCol(extractLine(file, iface), 10)
+	snd := extractIntCol(extractLine(file, iface), 10)
 	rcv := extractIntCol(extractLine(file, iface), 2)
-	return tx, rcv
+	return snd, rcv
 }
 
-func upDownNet() (int64, int64) {
-	tx, rcv := txRcvNet()
+func netRate() (int64, int64) {
+	snd, rcv := netSndRcv()
 	now := time.Now()
-	up := int64(float64(tx - nStats.lastTx) / now.Sub(nStats.lastTime).Seconds())
-	down := int64(float64(rcv - nStats.lastRcv) / now.Sub(nStats.lastTime).Seconds())
-	nStats = netStats{tx, rcv, now}
+	up := int64(float64(snd - prevNetStats.v[0]) / now.Sub(prevNetStats.t).Seconds())
+	down := int64(float64(rcv - prevNetStats.v[1]) / now.Sub(prevNetStats.t).Seconds())
+	prevNetStats = prevStats{[]int64{snd, rcv}, now}
 	return up, down
 }

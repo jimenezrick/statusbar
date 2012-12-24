@@ -24,15 +24,23 @@ func extractLine(s, substr string) string {
 	panic("line with substring " + substr + " not found")
 }
 
-func extractColumn(s string, n int) string {
+func extractCol(s string, n int) string {
 	fields := strings.Fields(s)
 	return fields[n - 1]
 }
 
-func extractIntColumn(s string, n int) int {
-	i, err := strconv.Atoi(extractColumn(s, n))
+func extractIntCol(s string, n int) int {
+	i, err := strconv.Atoi(extractCol(s, n))
 	if err != nil {
 		panic(err)
 	}
 	return i
+}
+
+func extractFloatCol(s string, n int) float64 {
+	f, err := strconv.ParseFloat(extractCol(s, n), 64)
+	if err != nil {
+		panic(err)
+	}
+	return f
 }

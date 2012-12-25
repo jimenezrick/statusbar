@@ -12,7 +12,10 @@ import (
 	"time"
 )
 
-var statsUpdates = make(chan string)
+var (
+	notifications = make(chan string)
+	statsUpdates = make(chan string)
+)
 
 func updater() {
 	xconn := C.connect_x()
@@ -25,9 +28,14 @@ func updater() {
 		panic("can't find screen")
 	}
 
-	warn(xconn, ">", 20, 25, 2)
 	for {
-		s := <-statsUpdates
+		var s string
+
+		select {
+		case s= <-notifications:
+			warn(xconn, ">", 20, 15, 2)
+		case s = <-statsUpdates:
+		}
 		set_wm_name(xconn, s)
 	}
 }

@@ -7,14 +7,14 @@ package main
 import "C"
 
 import (
-	"unsafe"
 	"strings"
 	"time"
+	"unsafe"
 )
 
 var (
 	notifications = make(chan string)
-	statsUpdates = make(chan string)
+	statsUpdates  = make(chan string)
 )
 
 func updater() {
@@ -32,7 +32,7 @@ func updater() {
 		var s string
 
 		select {
-		case s= <-notifications:
+		case s = <-notifications:
 			warn(xconn, ">", 20, 15, 2)
 		case s = <-statsUpdates:
 		}
@@ -42,7 +42,7 @@ func updater() {
 
 func set_wm_name(xconn *C.xconn_t, name string) {
 	str := C.CString(name)
-	defer C.free(unsafe.Pointer(str));
+	defer C.free(unsafe.Pointer(str))
 	if C.set_wm_name(xconn, str) == -1 {
 		panic("can't set window manager name")
 	}

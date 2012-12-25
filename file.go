@@ -1,9 +1,9 @@
 package main
 
 import (
-	"strings"
 	"io/ioutil"
 	"strconv"
+	"strings"
 )
 
 func readFile(name string) string {
@@ -26,7 +26,7 @@ func extractLine(s, substr string) string {
 
 func extractCol(s string, n int) string {
 	fields := strings.Fields(s)
-	return fields[n - 1]
+	return fields[n-1]
 }
 
 func extractIntCol(s string, n int) int64 {

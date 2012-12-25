@@ -7,7 +7,7 @@ import (
 
 var (
 	disk, iface string
-	pause int
+	pause       int
 )
 
 type prevStats struct {
@@ -85,7 +85,7 @@ func ioBusy() int64 {
 func ioRate() float64 {
 	busy := ioBusy()
 	now := time.Now()
-	rate := float64(busy - prevIoStats.v[0]) / 1000 / now.Sub(prevIoStats.t).Seconds()
+	rate := float64(busy-prevIoStats.v[0]) / 1000 / now.Sub(prevIoStats.t).Seconds()
 	prevIoStats = prevStats{[]int64{busy}, now}
 	return rate * 100
 }
@@ -100,8 +100,8 @@ func netSndRcv() (int64, int64) {
 func netRate() (int64, int64) {
 	snd, rcv := netSndRcv()
 	now := time.Now()
-	up := int64(float64(snd - prevNetStats.v[0]) / now.Sub(prevNetStats.t).Seconds())
-	down := int64(float64(rcv - prevNetStats.v[1]) / now.Sub(prevNetStats.t).Seconds())
+	up := int64(float64(snd-prevNetStats.v[0]) / now.Sub(prevNetStats.t).Seconds())
+	down := int64(float64(rcv-prevNetStats.v[1]) / now.Sub(prevNetStats.t).Seconds())
 	prevNetStats = prevStats{[]int64{snd, rcv}, now}
 	return up, down
 }

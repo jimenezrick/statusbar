@@ -6,8 +6,8 @@ import (
 )
 
 var (
+	interval       int
 	disk, iface string
-	pause       int
 )
 
 type prevStats struct {
@@ -37,7 +37,7 @@ func updateStats() {
 		default:
 			// Don't enqueue stale updates
 		}
-		time.Sleep(time.Second * time.Duration(pause))
+		time.Sleep(time.Second * time.Duration(interval))
 	}
 }
 

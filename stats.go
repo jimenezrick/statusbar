@@ -17,23 +17,26 @@ type prevStats struct {
 	t time.Time
 }
 
-var prevNetStats prevStats
+var prevNetStats, prevIoStats prevStats
 
 func init() {
 	snd, rcv := netSndRcv()
-	prevNetStats = prevStats{[]int64{snd, rcv}, time.Now()}
+	busy := ioBusy()
+	now := time.Now()
+	prevNetStats = prevStats{[]int64{snd, rcv}, now}
+	prevIoStats = prevStats{[]int64{busy}, now}
 }
 
 func updateStats() {
 	for {
-		io := 0.0 // XXX
+		io := ioRate()
 		up, down := netRate()
 		stats := formatStats(time.Now(), loadAvg(), usedMem(), io, up, down)
 
 		select {
 		case statsUpdates <- stats:
 		default:
-			// Don't queue stale updates
+			// Don't enqueue stale updates
 			println("--- SKIP ---") // TODO: Remove
 		}
 		time.Sleep(pause)
@@ -76,32 +79,18 @@ func usedMem() int64 {
 	return (memTotal - memFree) * 1024
 }
 
+func ioBusy() int64 {
+	file := readFile("/proc/diskstats")
+	return extractIntCol(extractLine(file, disk), 13)
+}
 
-
-
-
-
-
-
-
-
-
-
-
-// io....
-// ioRate
-
-
-
-
-
-
-
-
-
-
-
-
+func ioRate() float64 {
+	busy := ioBusy()
+	now := time.Now()
+	rate := float64(busy - prevIoStats.v[0]) / 1000 / now.Sub(prevIoStats.t).Seconds()
+	prevIoStats = prevStats{[]int64{busy}, now}
+	return rate * 100
+}
 
 func netSndRcv() (int64, int64) {
 	file := readFile("/proc/net/dev")

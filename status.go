@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-var statsUpdates chan string = make(chan string)
+var statsUpdates = make(chan string)
 
 func updater() {
 	xconn := C.connect_x()

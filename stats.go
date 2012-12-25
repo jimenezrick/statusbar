@@ -5,11 +5,9 @@ import (
 	"time"
 )
 
-const (
-	// TODO: Take from command line
-	disk = "sda"
-	iface = "eth0"
-	pause = time.Second
+var (
+	disk, iface string
+	pause int
 )
 
 type prevStats struct {
@@ -19,7 +17,7 @@ type prevStats struct {
 
 var prevNetStats, prevIoStats prevStats
 
-func init() {
+func initStats() {
 	snd, rcv := netSndRcv()
 	busy := ioBusy()
 	now := time.Now()
@@ -28,6 +26,7 @@ func init() {
 }
 
 func updateStats() {
+	initStats()
 	for {
 		io := ioRate()
 		up, down := netRate()
@@ -37,9 +36,8 @@ func updateStats() {
 		case statsUpdates <- stats:
 		default:
 			// Don't enqueue stale updates
-			println("--- SKIP ---") // TODO: Remove
 		}
-		time.Sleep(pause)
+		time.Sleep(time.Second * time.Duration(pause))
 	}
 }
 

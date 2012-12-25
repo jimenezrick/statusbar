@@ -13,12 +13,18 @@ func printError(err interface{}) {
 func recoverError() {
 	if err := recover(); err != nil {
 		printError(err)
+	}
+}
+
+func recoverErrorExit() {
+	if err := recover(); err != nil {
+		printError(err)
 		os.Exit(1)
 	}
 }
 
 func main() {
-	defer recoverError()
+	defer recoverErrorExit()
 
 	flag.IntVar(&updateInterval, "u", 1, "update interval (seconds)")
 	flag.StringVar(&disk, "d", "sda", "disk device")

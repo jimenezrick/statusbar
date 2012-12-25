@@ -9,7 +9,7 @@ import (
 var address string
 
 func listener() {
-	defer recoverError()
+	defer recoverErrorExit()
 
 	lis, err := net.Listen("tcp", address)
 	if err != nil {

@@ -21,7 +21,7 @@ var (
 )
 
 func updater() {
-	defer recoverError()
+	defer recoverErrorExit()
 
 	xconn := C.connect_x()
 	if xconn == nil {

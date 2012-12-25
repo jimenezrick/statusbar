@@ -5,6 +5,8 @@ import "net"
 var address string
 
 func listener() {
+	defer recoverError()
+
 	lis, err := net.Listen("tcp", address)
 	if err != nil {
 		panic(err)

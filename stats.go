@@ -6,7 +6,7 @@ import (
 )
 
 var (
-	interval       int
+	interval    int
 	disk, iface string
 )
 

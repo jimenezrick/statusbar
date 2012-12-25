@@ -18,6 +18,8 @@ var (
 )
 
 func updater() {
+	defer recoverError()
+
 	xconn := C.connect_x()
 	if xconn == nil {
 		panic("can't connect to X server")

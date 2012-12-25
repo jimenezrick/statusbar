@@ -1,6 +1,9 @@
 package main
 
-import "net"
+import (
+	"net"
+	"bufio"
+)
 
 var address string
 
@@ -15,14 +18,34 @@ func listener() {
 	for {
 		conn, err := lis.Accept()
 		if err != nil {
-			printError(err)
+			panic(err)
 		}
 		go handleConn(conn)
 	}
 }
 
 func handleConn(conn net.Conn) {
-	//
-	// XXX
-	//
+	defer recoverError()
+
+	r := bufio.NewReader(conn)
+	switch readLine(r) {
+	case "notification:":
+		notifications <- readLine(r)
+	case "status:":
+		//
+		// XXX: also help usage
+		//
+	}
+
+	if err := conn.Close(); err != nil {
+		panic(err)
+	}
+}
+
+func readLine(r *bufio.Reader) string {
+	l, err := r.ReadString('\n')
+	if err != nil {
+		panic(err)
+	}
+	return l[:len(l) - 1]
 }

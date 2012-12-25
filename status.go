@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	notifications = make(chan string)
+	notifications = make(chan string, 5)
 	statsUpdates  = make(chan string)
 )
 
@@ -35,7 +35,7 @@ func updater() {
 
 		select {
 		case s = <-notifications:
-			warn(xconn, ">", 20, 15, 2)
+			warn(xconn, ">", 20, 15, 2) // XXX: Todo sleep 5 after a notification
 		case s = <-statsUpdates:
 		}
 		set_wm_name(xconn, s)

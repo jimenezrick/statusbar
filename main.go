@@ -13,14 +13,14 @@ func printError(err interface{}) {
 func recoverError() {
 	if err := recover(); err != nil {
 		printError(err)
+		os.Exit(1)
 	}
-	os.Exit(1)
 }
 
 func main() {
 	defer recoverError()
 
-	flag.IntVar(&interval, "u", 1, "update interval (seconds)")
+	flag.IntVar(&updateInterval, "u", 1, "update interval (seconds)")
 	flag.StringVar(&disk, "d", "sda", "disk device")
 	flag.StringVar(&iface, "i", "eth0", "net interface")
 	flag.StringVar(&address, "l", ":9000", "listen address ([host]:port)")

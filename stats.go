@@ -6,7 +6,7 @@ import (
 )
 
 var (
-	interval    int
+	updateInterval    int
 	disk, iface string
 )
 
@@ -37,7 +37,7 @@ func updateStats() {
 		default:
 			// Don't enqueue stale updates
 		}
-		time.Sleep(time.Second * time.Duration(interval))
+		time.Sleep(time.Second * time.Duration(updateInterval))
 	}
 }
 

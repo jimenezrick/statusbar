@@ -12,6 +12,8 @@ import (
 	"unsafe"
 )
 
+const notificationPause = 5
+
 var (
 	notifications = make(chan string, 5)
 	statsUpdates  = make(chan string)
@@ -35,10 +37,12 @@ func updater() {
 
 		select {
 		case s = <-notifications:
-			warn(xconn, ">", 20, 15, 2) // XXX: Todo sleep 5 after a notification
+			warn(xconn, ">", 20, 15, 2)
+			set_wm_name(xconn, s)
+			time.Sleep(time.Second * notificationPause)
 		case s = <-statsUpdates:
+			set_wm_name(xconn, s)
 		}
-		set_wm_name(xconn, s)
 	}
 }
 
@@ -54,7 +58,7 @@ func warn(xconn *C.xconn_t, pattern string, len int, pause int, times int) {
 	for t := 0; t < times; t++ {
 		for l := len; l > 0; l-- {
 			set_wm_name(xconn, strings.Repeat(pattern, l))
-			time.Sleep(time.Duration(pause) * time.Millisecond)
+			time.Sleep(time.Millisecond * time.Duration(pause))
 		}
 	}
 }

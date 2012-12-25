@@ -3,6 +3,7 @@ package main
 import (
 	"net"
 	"bufio"
+	"strings"
 )
 
 var address string
@@ -28,13 +29,19 @@ func handleConn(conn net.Conn) {
 	defer recoverError()
 
 	r := bufio.NewReader(conn)
-	switch readLine(r) {
-	case "notification:":
+	fs := strings.Fields(readLine(r))
+
+	switch {
+	case len(fs) == 1 && fs[0] == "notification:":
 		notifications <- readLine(r)
-	case "status:":
-		//
-		// XXX: also help usage
-		//
+	case len(fs) == 2 && fs[0] == "status" && strings.HasSuffix(fs[1], ":"):
+		for {
+			select {
+			case remoteStats <- fs[1] + " " + readLine(r):
+			default:
+				// Don't enqueue stale updates
+			}
+		}
 	}
 
 	if err := conn.Close(); err != nil {

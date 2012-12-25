@@ -16,7 +16,8 @@ const notificationPause = 5
 
 var (
 	notifications = make(chan string, 5)
-	statsUpdates  = make(chan string)
+	remoteStats  = make(chan string, 5)
+	localStats  = make(chan string)
 )
 
 func updater() {
@@ -40,7 +41,9 @@ func updater() {
 			warn(xconn, ">", 20, 15, 2)
 			set_wm_name(xconn, s)
 			time.Sleep(time.Second * notificationPause)
-		case s = <-statsUpdates:
+		case s = <-remoteStats:
+			set_wm_name(xconn, s)
+		case s = <-localStats:
 			set_wm_name(xconn, s)
 		}
 	}

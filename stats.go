@@ -30,10 +30,10 @@ func updateStats() {
 	for {
 		io := ioRate()
 		up, down := netRate()
-		stats := formatStats(time.Now(), loadAvg(), usedMem(), io, up, down)
+		s := formatStats(time.Now(), loadAvg(), usedMem(), io, up, down)
 
 		select {
-		case statsUpdates <- stats:
+		case localStats <- s:
 		default:
 			// Don't enqueue stale updates
 		}

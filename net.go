@@ -13,6 +13,7 @@ func sendNotification(host, msg string) {
 	if err != nil {
 		panic(err)
 	}
+	defer conn.Close()
 
 	hostname, err := os.Hostname()
 	if err != nil {
@@ -21,10 +22,6 @@ func sendNotification(host, msg string) {
 
 	writeLine(conn, "notify "+hostname+":")
 	writeLine(conn, msg)
-
-	if err := conn.Close(); err != nil {
-		panic(err)
-	}
 }
 
 func listener(addr string) {
@@ -46,6 +43,7 @@ func listener(addr string) {
 
 func handleConn(conn net.Conn) {
 	defer recoverError()
+	defer conn.Close()
 
 	host, _, err := net.SplitHostPort(conn.RemoteAddr().String())
 	if err != nil {
@@ -70,10 +68,6 @@ func handleConn(conn net.Conn) {
 				// Don't enqueue stale updates
 			}
 		}
-	}
-
-	if err := conn.Close(); err != nil {
-		panic(err)
 	}
 }
 

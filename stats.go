@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"time"
+	"net"
+	"os"
 )
 
 type prevStats struct {
@@ -25,13 +27,37 @@ func updateStats(interval int, disk, iface string) {
 	for {
 		io := ioRate(disk)
 		up, down := netRate(iface)
-		s := formatStats(time.Now(), loadAvg(), usedMem(), io, up, down)
+		stats := formatStats(time.Now(), loadAvg(), usedMem(), io, up, down)
 
 		select {
-		case localStats <- s:
+		case localStats <- stats:
 		default:
 			// Don't enqueue stale updates
 		}
+		time.Sleep(time.Duration(interval) * time.Second)
+	}
+}
+
+func sendStats(host string, interval int, disk, iface string) {
+	conn, err := net.Dial("tcp", host)
+	if err != nil {
+		panic(err)
+	}
+	defer conn.Close()
+
+	hostname, err := os.Hostname()
+	if err != nil {
+		panic(err)
+	}
+	writeLine(conn, "status "+hostname+":")
+
+	initStats(disk, iface)
+	for {
+		io := ioRate(disk)
+		up, down := netRate(iface)
+		stats := formatStats(time.Now(), loadAvg(), usedMem(), io, up, down)
+
+		writeLine(conn, stats)
 		time.Sleep(time.Duration(interval) * time.Second)
 	}
 }

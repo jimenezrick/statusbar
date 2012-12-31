@@ -15,7 +15,7 @@ import (
 const notificationPause = 5 * time.Second
 
 var (
-	notifications = make(chan string)
+	notifications = make(chan string, 5)
 	remoteStats   = make(chan string, 5)
 	localStats    = make(chan string)
 )

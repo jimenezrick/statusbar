@@ -26,15 +26,12 @@ func recoverErrorExit() {
 func main() {
 	defer recoverErrorExit()
 
-	// XXX XXX XXX: iface, disk, interval
-	flag.IntVar(&updateInterval, "u", 1, "update interval (seconds)")
-	flag.StringVar(&disk, "d", "sda", "disk device")
-	flag.StringVar(&iface, "i", "eth0", "net interface")
-	addr := flag.String("l", ":9000", "listen address ([host]:port)")
-	// XXX XXX XXX
-
+	interval := flag.Int("u", 1, "update interval (seconds)")
+	disk := flag.String("d", "sda", "disk device")
+	iface := flag.String("i", "eth0", "net interface")
+	addr := flag.String("l", ":9000", "listen on address ([host]:port)")
 	host := flag.String("h", "localhost:9000", "connect to host ([host]:port)")
-	msg := flag.String("n", "", "notification message")
+	msg := flag.String("n", "", "message notification")
 	flag.Parse()
 
 	if *msg != "" {
@@ -42,6 +39,6 @@ func main() {
 	} else {
 		go updater()
 		go listener(*addr)
-		updateStats()
+		updateStats(*interval, *disk, *iface)
 	}
 }

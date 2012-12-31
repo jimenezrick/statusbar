@@ -5,11 +5,6 @@ import (
 	"time"
 )
 
-var (
-	updateInterval int
-	disk, iface    string
-)
-
 type prevStats struct {
 	v []int64
 	t time.Time
@@ -17,19 +12,19 @@ type prevStats struct {
 
 var prevNetStats, prevIoStats prevStats
 
-func initStats() {
-	snd, rcv := netSndRcv()
-	busy := ioBusy()
+func initStats(disk, iface string) {
+	snd, rcv := netSndRcv(iface)
+	busy := ioBusy(disk)
 	now := time.Now()
 	prevNetStats = prevStats{[]int64{snd, rcv}, now}
 	prevIoStats = prevStats{[]int64{busy}, now}
 }
 
-func updateStats() {
-	initStats()
+func updateStats(interval int, disk, iface string) {
+	initStats(disk, iface)
 	for {
-		io := ioRate()
-		up, down := netRate()
+		io := ioRate(disk)
+		up, down := netRate(iface)
 		s := formatStats(time.Now(), loadAvg(), usedMem(), io, up, down)
 
 		select {
@@ -37,7 +32,7 @@ func updateStats() {
 		default:
 			// Don't enqueue stale updates
 		}
-		time.Sleep(time.Second * time.Duration(updateInterval))
+		time.Sleep(time.Duration(interval) * time.Second)
 	}
 }
 
@@ -77,28 +72,28 @@ func usedMem() int64 {
 	return (memTotal - memFree) * 1024
 }
 
-func ioBusy() int64 {
+func ioBusy(disk string) int64 {
 	file := readFile("/proc/diskstats")
 	return extractIntCol(extractLine(file, disk), 13)
 }
 
-func ioRate() float64 {
-	busy := ioBusy()
+func ioRate(disk string) float64 {
+	busy := ioBusy(disk)
 	now := time.Now()
 	rate := float64(busy-prevIoStats.v[0]) / 1000 / now.Sub(prevIoStats.t).Seconds()
 	prevIoStats = prevStats{[]int64{busy}, now}
 	return rate * 100
 }
 
-func netSndRcv() (int64, int64) {
+func netSndRcv(iface string) (int64, int64) {
 	file := readFile("/proc/net/dev")
 	snd := extractIntCol(extractLine(file, iface), 10)
 	rcv := extractIntCol(extractLine(file, iface), 2)
 	return snd, rcv
 }
 
-func netRate() (int64, int64) {
-	snd, rcv := netSndRcv()
+func netRate(iface string) (int64, int64) {
+	snd, rcv := netSndRcv(iface)
 	now := time.Now()
 	up := int64(float64(snd-prevNetStats.v[0]) / now.Sub(prevNetStats.t).Seconds())
 	down := int64(float64(rcv-prevNetStats.v[1]) / now.Sub(prevNetStats.t).Seconds())

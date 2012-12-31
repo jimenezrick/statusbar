@@ -38,7 +38,7 @@ func updater() {
 
 		select {
 		case s = <-notifications:
-			warn(xconn, ">", 20, 15, 2)
+			warn(xconn, ">", 20, 20, 2)
 			set_wm_name(xconn, s)
 			time.Sleep(time.Second * notificationPause)
 		case s = <-remoteStats:

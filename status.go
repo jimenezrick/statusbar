@@ -15,7 +15,7 @@ import (
 const notificationPause = 5
 
 var (
-	notifications = make(chan string, 5)
+	notifications = make(chan string)
 	remoteStats  = make(chan string, 5)
 	localStats  = make(chan string)
 )

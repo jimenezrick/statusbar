@@ -26,13 +26,22 @@ func recoverErrorExit() {
 func main() {
 	defer recoverErrorExit()
 
+	// XXX XXX XXX: iface, disk, interval
 	flag.IntVar(&updateInterval, "u", 1, "update interval (seconds)")
 	flag.StringVar(&disk, "d", "sda", "disk device")
 	flag.StringVar(&iface, "i", "eth0", "net interface")
-	flag.StringVar(&address, "l", ":9000", "listen address ([host]:port)")
+	addr := flag.String("l", ":9000", "listen address ([host]:port)")
+	// XXX XXX XXX
+
+	host := flag.String("h", "localhost:9000", "connect to host ([host]:port)")
+	msg := flag.String("n", "", "notification message")
 	flag.Parse()
 
-	go updater()
-	go listener()
-	updateStats()
+	if *msg != "" {
+		sendNotification(*host, *msg)
+	} else {
+		go updater()
+		go listener(*addr)
+		updateStats()
+	}
 }

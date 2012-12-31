@@ -1,17 +1,36 @@
 package main
 
 import (
+	"io"
+	"os"
 	"net"
 	"bufio"
 	"strings"
 )
 
-var address string
+func sendNotification(host, msg string) {
+	conn, err := net.Dial("tcp", host)
+	if err != nil {
+		panic(err)
+	}
 
-func listener() {
+	hostname, err := os.Hostname()
+	if err != nil {
+		panic(err)
+	}
+
+	writeLine(conn, "notify " + hostname + ":")
+	writeLine(conn, msg)
+
+	if err := conn.Close(); err != nil {
+		panic(err)
+	}
+}
+
+func listener(addr string) {
 	defer recoverErrorExit()
 
-	lis, err := net.Listen("tcp", address)
+	lis, err := net.Listen("tcp", addr)
 	if err != nil {
 		panic(err)
 	}
@@ -37,10 +56,12 @@ func handleConn(conn net.Conn) {
 	fs := strings.Fields(readLine(r))
 
 	switch {
-	case len(fs) == 1 && fs[0] == "notify:" && host == "127.0.0.1":
-		notifications <- readLine(r)
 	case len(fs) == 2 && fs[0] == "notify" && strings.HasSuffix(fs[1], ":"):
-		notifications <- fs[1] + " " + readLine(r)
+		if host == "127.0.0.1" {
+			notifications <- readLine(r)
+		} else {
+			notifications <- fs[1] + " " + readLine(r)
+		}
 	case len(fs) == 2 && fs[0] == "status" && strings.HasSuffix(fs[1], ":"):
 		for {
 			select {
@@ -62,4 +83,10 @@ func readLine(r *bufio.Reader) string {
 		panic(err)
 	}
 	return l[:len(l) - 1]
+}
+
+func writeLine(w io.Writer, s string) {
+	if _, err := w.Write([]byte(s + "\n")); err != nil {
+		panic(err)
+	}
 }

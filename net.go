@@ -1,10 +1,10 @@
 package main
 
 import (
-	"io"
-	"os"
-	"net"
 	"bufio"
+	"io"
+	"net"
+	"os"
 	"strings"
 )
 
@@ -19,7 +19,7 @@ func sendNotification(host, msg string) {
 		panic(err)
 	}
 
-	writeLine(conn, "notify " + hostname + ":")
+	writeLine(conn, "notify "+hostname+":")
 	writeLine(conn, msg)
 
 	if err := conn.Close(); err != nil {
@@ -82,7 +82,7 @@ func readLine(r *bufio.Reader) string {
 	if err != nil {
 		panic(err)
 	}
-	return l[:len(l) - 1]
+	return l[:len(l)-1]
 }
 
 func writeLine(w io.Writer, s string) {

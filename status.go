@@ -16,8 +16,8 @@ const notificationPause = 5 * time.Second
 
 var (
 	notifications = make(chan string)
-	remoteStats  = make(chan string, 5)
-	localStats  = make(chan string)
+	remoteStats   = make(chan string, 5)
+	localStats    = make(chan string)
 )
 
 func updater() {
@@ -61,8 +61,8 @@ func set_wm_name(xconn *C.xconn_t, name string) {
 func warn(xconn *C.xconn_t, name, pattern string, len int, pause int, times int) {
 	for t := 0; t < times; t++ {
 		for l := 0; l < len; l++ {
-			animation := strings.Repeat(" ", l) + pattern + strings.Repeat(" ", len - l)
-			set_wm_name(xconn, animation + name)
+			animation := strings.Repeat(" ", l) + pattern + strings.Repeat(" ", len-l)
+			set_wm_name(xconn, animation+name)
 			time.Sleep(time.Millisecond * time.Duration(pause))
 		}
 	}

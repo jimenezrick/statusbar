@@ -6,8 +6,8 @@ import (
 )
 
 var (
-	updateInterval    int
-	disk, iface string
+	updateInterval int
+	disk, iface    string
 )
 
 type prevStats struct {

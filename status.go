@@ -12,7 +12,7 @@ import (
 	"unsafe"
 )
 
-const notificationPause = 5
+const notificationPause = 5 * time.Second
 
 var (
 	notifications = make(chan string)
@@ -38,9 +38,10 @@ func updater() {
 
 		select {
 		case s = <-notifications:
-			warn(xconn, ">", 20, 20, 2)
+			t := time.After(notificationPause)
+			warn(xconn, s, "··>", 10, 40, 3)
 			set_wm_name(xconn, s)
-			time.Sleep(time.Second * notificationPause)
+			<-t
 		case s = <-remoteStats:
 			set_wm_name(xconn, s)
 		case s = <-localStats:
@@ -57,10 +58,11 @@ func set_wm_name(xconn *C.xconn_t, name string) {
 	}
 }
 
-func warn(xconn *C.xconn_t, pattern string, len int, pause int, times int) {
+func warn(xconn *C.xconn_t, name, pattern string, len int, pause int, times int) {
 	for t := 0; t < times; t++ {
-		for l := len; l > 0; l-- {
-			set_wm_name(xconn, strings.Repeat(pattern, l))
+		for l := 0; l < len; l++ {
+			animation := strings.Repeat(" ", l) + pattern + strings.Repeat(" ", len - l)
+			set_wm_name(xconn, animation + name)
 			time.Sleep(time.Millisecond * time.Duration(pause))
 		}
 	}

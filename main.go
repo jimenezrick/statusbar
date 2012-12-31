@@ -37,7 +37,7 @@ func main() {
 	msg := flag.String("n", "", "message notification")
 	flag.Parse()
 
-	if !strings.Contains(*host, ":") {
+	if *host != "" && !strings.Contains(*host, ":") {
 		*host += defaultPort
 	}
 

@@ -43,7 +43,7 @@ func main() {
 
 	switch {
 	case *msg != "" && *host == "":
-		sendNotification("localhost" + defaultPort, *msg)
+		sendNotification("localhost"+defaultPort, *msg)
 	case *msg != "" && *host != "":
 		sendNotification(*host, *msg)
 	case *host != "":

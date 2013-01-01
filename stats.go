@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
-	"time"
 	"net"
 	"os"
+	"time"
 )
 
 type prevStats struct {

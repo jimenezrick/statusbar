@@ -1,0 +1,26 @@
+  dwmstatus
+=============
+
+ Status bar utility for dwm written in Go with XCB that shows: date,
+load, memory, I/O and network statistics.
+
+ It features sending local/remote notifications and showing stats of
+another machine.
+
+
+ Usage
+-------
+
+See `dwmstatus -h' and `main.go'.
+
+
+ License
+---------
+
+Terms from LICENSE file apply.
+
+
+ Author
+--------
+
+Ricardo Catalinas Jiménez <jimenezrick@gmail.com>

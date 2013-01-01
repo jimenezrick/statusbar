@@ -20,7 +20,7 @@ var (
 	localStats    = make(chan string)
 )
 
-func updater() {
+func updater(timeoutRemote int) {
 	defer recoverErrorExit()
 
 	xconn := C.connect_x()
@@ -34,19 +34,31 @@ func updater() {
 	}
 
 	for {
-		var s string
-
 		select {
-		case s = <-notifications:
-			t := time.After(notificationPause)
-			warn(xconn, s, "··>", 10, 40, 3)
+		case s := <-notifications:
+			notify(xconn, s)
+		case s := <-remoteStats:
 			set_wm_name(xconn, s)
-			<-t
-		case s = <-remoteStats:
-			set_wm_name(xconn, s)
-		case s = <-localStats:
+			priorizeRemoteStats(xconn, timeoutRemote)
+		case s := <-localStats:
 			set_wm_name(xconn, s)
 		}
+	}
+}
+
+func priorizeRemoteStats(xconn *C.xconn_t, timeoutRemote int) {
+	for {
+		t := time.NewTimer(time.Duration(timeoutRemote) * time.Second)
+
+		select {
+		case s := <-notifications:
+			notify(xconn, s)
+		case s := <-remoteStats:
+			set_wm_name(xconn, s)
+		case <-t.C:
+			return
+		}
+		t.Stop()
 	}
 }
 
@@ -58,12 +70,19 @@ func set_wm_name(xconn *C.xconn_t, name string) {
 	}
 }
 
-func warn(xconn *C.xconn_t, name, pattern string, len int, pause int, times int) {
+func warn(xconn *C.xconn_t, msg, pattern string, len int, pause int, times int) {
 	for t := 0; t < times; t++ {
 		for l := 0; l < len; l++ {
 			animation := strings.Repeat(" ", l) + pattern + strings.Repeat(" ", len-l)
-			set_wm_name(xconn, animation+name)
+			set_wm_name(xconn, animation+msg)
 			time.Sleep(time.Millisecond * time.Duration(pause))
 		}
 	}
+}
+
+func notify(xconn *C.xconn_t, msg string) {
+	p := time.After(notificationPause)
+	warn(xconn, msg, "··>", 10, 40, 3)
+	set_wm_name(xconn, msg)
+	<-p
 }

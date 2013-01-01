@@ -49,7 +49,7 @@ func main() {
 	case *host != "":
 		sendStats(*host, *interval, *disk, *iface)
 	default:
-		go updater()
+		go updater(*interval * 2)
 		go listener(*addr)
 		updateStats(*interval, *disk, *iface)
 	}

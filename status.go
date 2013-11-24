@@ -82,7 +82,7 @@ func warn(xconn *C.xconn_t, msg, pattern string, len int, pause int, times int) 
 
 func notify(xconn *C.xconn_t, msg string) {
 	p := time.After(notificationPause)
-	warn(xconn, msg, "··>", 10, 40, 3)
+	warn(xconn, msg, "> > >", 20, 30, 3)
 	set_wm_name(xconn, msg)
 	<-p
 }

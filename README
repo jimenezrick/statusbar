@@ -1,8 +1,8 @@
   dwmstatus
 =============
 
- Status bar utility for dwm written in Go with XCB that shows: date,
-load, memory, I/O and network statistics.
+ Status bar utility for dwm written in Go using XCB, it shows: date,
+load, memory, I/O, network and battery statistics.
 
  It features sending local/remote notifications and showing stats of
 another machine.

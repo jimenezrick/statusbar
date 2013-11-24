@@ -7,6 +7,12 @@ import (
 	"time"
 )
 
+const (
+	noBat = iota
+	onBat
+	onAC
+)
+
 type prevStats struct {
 	v []int64
 	t time.Time
@@ -25,9 +31,9 @@ func initStats(disk, iface string) {
 func updateStats(interval int, disk, iface string) {
 	initStats(disk, iface)
 	for {
-		io := ioRate(disk)
 		up, down := netRate(iface)
-		stats := formatStats(time.Now(), loadAvg(), usedMem(), io, up, down)
+		batMode, batLvl := batStatus()
+		stats := formatStats(time.Now(), loadAvg(), usedMem(), ioRate(disk), up, down, batMode, batLvl)
 
 		select {
 		case localStats <- stats:
@@ -53,16 +59,27 @@ func sendStats(host string, interval int, disk, iface string) {
 
 	initStats(disk, iface)
 	for {
-		io := ioRate(disk)
 		up, down := netRate(iface)
-		stats := formatStats(time.Now(), loadAvg(), usedMem(), io, up, down)
+		batMode, batLvl := batStatus()
+		stats := formatStats(time.Now(), loadAvg(), usedMem(), ioRate(disk), up, down, batMode, batLvl)
 
 		writeLine(conn, stats)
 		time.Sleep(time.Duration(interval) * time.Second)
 	}
 }
 
-func formatStats(t time.Time, load float64, mem int64, io float64, up, down int64) string {
+func formatStats(t time.Time, load float64, mem int64, io float64, up, down int64, batMode int, batLvl float64) string {
+	var fmtBat string
+
+	switch batMode {
+	case noBat:
+		fmtBat = ""
+	case onBat:
+		fmtBat = fmt.Sprintf(" [%3.0f%%]", batLvl)
+	case onAC:
+		fmtBat = " [  AC]"
+	}
+
 	return fmt.Sprintf(
 		"%s [%.1fL] [%s] [%5.1fIO] [%s/%s]",
 		t.Format(time.ANSIC),
@@ -71,7 +88,7 @@ func formatStats(t time.Time, load float64, mem int64, io float64, up, down int6
 		io,
 		withUnits(up, 5),
 		withUnits(down, 5),
-	)
+	) + fmtBat
 }
 
 func withUnits(x int64, width int) string {
@@ -87,19 +104,28 @@ func withUnits(x int64, width int) string {
 }
 
 func loadAvg() float64 {
-	file := readFile("/proc/loadavg")
+	file, err := readFile("/proc/loadavg")
+	if err != nil {
+		panic(err)
+	}
 	return extractFloatCol(file, 1)
 }
 
 func usedMem() int64 {
-	file := readFile("/proc/meminfo")
+	file, err := readFile("/proc/meminfo")
+	if err != nil {
+		panic(err)
+	}
 	memTotal := extractIntCol(extractLine(file, "MemTotal"), 2)
 	memFree := extractIntCol(extractLine(file, "MemFree"), 2)
 	return (memTotal - memFree) * 1024
 }
 
 func ioBusy(disk string) int64 {
-	file := readFile("/proc/diskstats")
+	file, err := readFile("/proc/diskstats")
+	if err != nil {
+		panic(err)
+	}
 	return extractIntCol(extractLine(file, disk), 13)
 }
 
@@ -112,7 +138,10 @@ func ioRate(disk string) float64 {
 }
 
 func netSndRcv(iface string) (int64, int64) {
-	file := readFile("/proc/net/dev")
+	file, err := readFile("/proc/net/dev")
+	if err != nil {
+		panic(err)
+	}
 	snd := extractIntCol(extractLine(file, iface), 10)
 	rcv := extractIntCol(extractLine(file, iface), 2)
 	return snd, rcv
@@ -125,4 +154,29 @@ func netRate(iface string) (int64, int64) {
 	down := int64(float64(rcv-prevNetStats.v[1]) / now.Sub(prevNetStats.t).Seconds())
 	prevNetStats = prevStats{[]int64{snd, rcv}, now}
 	return up, down
+}
+
+func batStatus() (int, float64) {
+	fileOnline, err := readFile("/sys/class/power_supply/AC/online")
+	if err != nil {
+		return noBat, 0
+	}
+
+	if extractIntCol(fileOnline, 1) == 0 {
+		fileNow, err := readFile("/sys/class/power_supply/BAT0/energy_now")
+		if err != nil {
+			return noBat, 0
+		}
+
+		fileFull, err := readFile("/sys/class/power_supply/BAT0/energy_full")
+		if err != nil {
+			return noBat, 0
+		}
+
+		now := extractFloatCol(fileNow, 1)
+		full := extractFloatCol(fileFull, 1)
+		return onBat, now / full * 100
+	} else {
+		return onAC, 0
+	}
 }

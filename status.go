@@ -12,7 +12,10 @@ import (
 	"unsafe"
 )
 
-const notificationPause = 5 * time.Second
+const (
+	notificationPause = 5 * time.Second
+	arrow             = "> > >"
+)
 
 var (
 	notifications = make(chan string, 5)
@@ -82,7 +85,7 @@ func warn(xconn *C.xconn_t, msg, pattern string, len int, pause int, times int) 
 
 func notify(xconn *C.xconn_t, msg string) {
 	p := time.After(notificationPause)
-	warn(xconn, msg, "> > >", 20, 30, 3)
+	warn(xconn, msg, arrow, 20, 30, 3)
 	set_wm_name(xconn, msg)
 	<-p
 }

@@ -6,12 +6,12 @@ import (
 	"strings"
 )
 
-func readFile(name string) string {
+func readFile(name string) (string, error) {
 	buf, err := ioutil.ReadFile(name)
 	if err != nil {
-		panic(err)
+		return "", err
 	}
-	return string(buf)
+	return string(buf), nil
 }
 
 func extractLine(s, substr string) string {

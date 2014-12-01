@@ -28,11 +28,11 @@ func initStats(disk, iface string) {
 	prevIoStats = prevStats{[]int64{busy}, now}
 }
 
-func updateStats(interval int, disk, iface string) {
+func updateStats(interval int, disk, iface, ac, bat string) {
 	initStats(disk, iface)
 	for {
 		up, down := netRate(iface)
-		batMode, batLvl := batStatus()
+		batMode, batLvl := batStatus(ac, bat)
 		stats := formatStats(time.Now(), loadAvg(), usedMem(), ioRate(disk), up, down, batMode, batLvl)
 
 		select {
@@ -44,7 +44,7 @@ func updateStats(interval int, disk, iface string) {
 	}
 }
 
-func sendStats(host string, interval int, disk, iface string) {
+func sendStats(host string, interval int, disk, iface, ac, bat string) {
 	conn, err := net.Dial("tcp", host)
 	if err != nil {
 		panic(err)
@@ -60,7 +60,7 @@ func sendStats(host string, interval int, disk, iface string) {
 	initStats(disk, iface)
 	for {
 		up, down := netRate(iface)
-		batMode, batLvl := batStatus()
+		batMode, batLvl := batStatus(ac, bat)
 		stats := formatStats(time.Now(), loadAvg(), usedMem(), ioRate(disk), up, down, batMode, batLvl)
 
 		writeLine(conn, stats)
@@ -156,19 +156,19 @@ func netRate(iface string) (int64, int64) {
 	return up, down
 }
 
-func batStatus() (int, float64) {
-	fileOnline, err := readFile("/sys/class/power_supply/AC/online")
+func batStatus(ac, bat string) (int, float64) {
+	fileOnline, err := readFile(fmt.Sprintf("/sys/class/power_supply/%s/online", ac))
 	if err != nil {
 		return noBat, 0
 	}
 
 	if extractIntCol(fileOnline, 1) == 0 {
-		fileNow, err := readFile("/sys/class/power_supply/BAT0/energy_now")
+		fileNow, err := readFile(fmt.Sprintf("/sys/class/power_supply/%s/energy_now", bat))
 		if err != nil {
 			return noBat, 0
 		}
 
-		fileFull, err := readFile("/sys/class/power_supply/BAT0/energy_full")
+		fileFull, err := readFile(fmt.Sprintf("/sys/class/power_supply/%s/energy_full", bat))
 		if err != nil {
 			return noBat, 0
 		}

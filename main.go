@@ -32,6 +32,8 @@ func main() {
 	interval := flag.Int("u", 1, "update interval (seconds)")
 	disk := flag.String("d", "sda", "disk device")
 	iface := flag.String("i", "eth0", "net interface")
+	ac := flag.String("a", "AC", "ac device")
+	bat := flag.String("b", "BAT0", "battery device")
 	addr := flag.String("l", defaultPort, "listen on address ([host]:port)")
 	host := flag.String("h", "", "connect to host (host[:port])")
 	msg := flag.String("n", "", "message notification")
@@ -47,10 +49,10 @@ func main() {
 	case *msg != "" && *host != "":
 		sendNotification(*host, *msg)
 	case *host != "":
-		sendStats(*host, *interval, *disk, *iface)
+		sendStats(*host, *interval, *disk, *iface, *ac, *bat)
 	default:
 		go updater(*interval * 2)
 		go listener(*addr)
-		updateStats(*interval, *disk, *iface)
+		updateStats(*interval, *disk, *iface, *ac, *bat)
 	}
 }

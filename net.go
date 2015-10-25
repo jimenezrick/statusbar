@@ -45,7 +45,11 @@ func handleConn(conn net.Conn) {
 	defer recoverError()
 	defer conn.Close()
 
-	host, _, err := net.SplitHostPort(conn.RemoteAddr().String())
+	lhost, _, err := net.SplitHostPort(conn.LocalAddr().String())
+	if err != nil {
+		panic(err)
+	}
+	rhost, _, err := net.SplitHostPort(conn.RemoteAddr().String())
 	if err != nil {
 		panic(err)
 	}
@@ -55,7 +59,7 @@ func handleConn(conn net.Conn) {
 
 	switch {
 	case len(fs) == 2 && fs[0] == "notify" && strings.HasSuffix(fs[1], ":"):
-		if host == "127.0.0.1" {
+		if rhost == lhost {
 			notifications <- readLine(r)
 		} else {
 			notifications <- fs[1] + " " + readLine(r)

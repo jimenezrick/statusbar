@@ -2,8 +2,6 @@ package main
 
 import (
 	"fmt"
-	"net"
-	"os"
 	"time"
 )
 
@@ -28,44 +26,14 @@ func initStats(disk, iface string) {
 	prevIoStats = prevStats{[]int64{busy}, now}
 }
 
-func updateStats(interval int, disk, iface, ac, bat string) {
+func printStats(interval int, disk, iface, ac, bat string) {
 	initStats(disk, iface)
-	for {
-		up, down := netRate(iface)
-		batMode, batLvl := batStatus(ac, bat)
-		stats := formatStats(time.Now(), loadAvg(), usedMem(), ioRate(disk), up, down, batMode, batLvl)
 
-		select {
-		case localStats <- stats:
-		default:
-			// Don't enqueue stale updates
-		}
-		time.Sleep(time.Duration(interval) * time.Second)
-	}
-}
+	up, down := netRate(iface)
+	batMode, batLvl := batStatus(ac, bat)
+	stats := formatStats(time.Now(), loadAvg(), usedMem(), ioRate(disk), up, down, batMode, batLvl)
 
-func sendStats(host string, interval int, disk, iface, ac, bat string) {
-	conn, err := net.Dial("tcp", host)
-	if err != nil {
-		panic(err)
-	}
-	defer conn.Close()
-
-	hostname, err := os.Hostname()
-	if err != nil {
-		panic(err)
-	}
-	writeLine(conn, "status "+hostname+":")
-
-	initStats(disk, iface)
-	for {
-		up, down := netRate(iface)
-		batMode, batLvl := batStatus(ac, bat)
-		stats := formatStats(time.Now(), loadAvg(), usedMem(), ioRate(disk), up, down, batMode, batLvl)
-
-		writeLine(conn, stats)
-		time.Sleep(time.Duration(interval) * time.Second)
-	}
+	fmt.Println(stats)
 }
 
 func formatStats(t time.Time, load float64, mem int64, io float64, up, down int64, batMode int, batLvl float64) string {
@@ -80,7 +48,7 @@ func formatStats(t time.Time, load float64, mem int64, io float64, up, down int6
 		fmtBat = " [  AC]"
 	}
 
-	return fmt.Sprintf(
+	return "system " + fmt.Sprintf(
 		"%s [%.1fL] [%s] [%5.1fIO] [%s/%s]",
 		t.Format(time.ANSIC),
 		load,
@@ -176,7 +144,7 @@ func batStatus(ac, bat string) (int, float64) {
 		now := extractFloatCol(fileNow, 1)
 		full := extractFloatCol(fileFull, 1)
 		return onBat, now / full * 100
-	} else {
-		return onAC, 0
 	}
+
+	return onAC, 0
 }
